@@ -2,78 +2,80 @@ import { Alert } from '@atoms/Alert';
 import { Button } from '@atoms/Button';
 import { Icon } from '@atoms/Icon';
 import { ChipGroupField } from '@molecules/ChipGroupField';
+import { FormField } from '@molecules/FormField';
 import { SelectField } from '@molecules/SelectField';
-import { TextareaField } from '@molecules/TextareaField';
 import { AvailabilityGrid } from '@organisms/AvailabilityGrid';
 import { useForm } from '@hooks/useForm';
-import type { ModalityPreference, Subject, TutoringRequestInput } from '@/types/domain';
-import { MODALITY_PREFERENCE_LABELS } from '@utils/labels';
-import { validateRequest, type RequestFormValues } from '@utils/tutoringValidation';
+import type { SolicitudMatch } from '@/types/domain';
+import { MATERIAS, MODALIDADES } from '@utils/catalog';
+import { validateMatch, type MatchFormValues } from '@utils/matchValidation';
 
 export interface RequestFormProps {
-  subjects: Subject[];
-  onSubmit: (values: TutoringRequestInput) => void;
+  onSubmit: (values: SolicitudMatch) => void;
   isLoading?: boolean;
   errorMessage?: string | null;
 }
 
-const INITIAL_VALUES: RequestFormValues = { subjectId: '', modality: 'any', availability: [], notes: '' };
+const INITIAL_VALUES: MatchFormValues = { nombreEstudiante: '', materia: '', modalidad: 'AMBAS', horarios: [] };
 
-const MODALITY_OPTIONS = (Object.keys(MODALITY_PREFERENCE_LABELS) as ModalityPreference[]).map((value) => ({
-  value,
-  label: MODALITY_PREFERENCE_LABELS[value],
-}));
+const MATERIA_OPTIONS = MATERIAS.map((materia) => ({ value: materia, label: materia }));
 
-export function RequestForm({ subjects, onSubmit, isLoading = false, errorMessage }: RequestFormProps) {
+/** Formulario de búsqueda del tutor ideal (POST /match). */
+export function RequestForm({ onSubmit, isLoading = false, errorMessage }: RequestFormProps) {
   const { values, handleChange, handleBlur, setFieldValue, handleSubmit, getFieldError } =
-    useForm<RequestFormValues>({ initialValues: INITIAL_VALUES, validate: validateRequest, onSubmit });
+    useForm<MatchFormValues>({
+      initialValues: INITIAL_VALUES,
+      validate: validateMatch,
+      onSubmit: (formValues) => onSubmit({ ...formValues, nombreEstudiante: formValues.nombreEstudiante.trim() }),
+    });
 
   return (
-    <form noValidate onSubmit={handleSubmit} className="space-y-6" aria-label="Nueva solicitud de tutoría">
+    <form noValidate onSubmit={handleSubmit} className="space-y-6" aria-label="Buscar tutor">
       {errorMessage && <Alert variant="error">{errorMessage}</Alert>}
 
       <div className="grid gap-6 sm:grid-cols-2">
-        <SelectField
-          name="subjectId"
-          label="Materia"
-          placeholder="Selecciona una materia"
+        <FormField
+          name="nombreEstudiante"
+          label="Nombre del estudiante"
+          icon="user"
+          placeholder="Pedro Pérez"
           required
-          options={subjects.map((subject) => ({ value: subject.id, label: subject.name }))}
-          value={values.subjectId}
-          error={getFieldError('subjectId')}
+          value={values.nombreEstudiante}
+          error={getFieldError('nombreEstudiante')}
           disabled={isLoading}
           onChange={handleChange}
           onBlur={handleBlur}
         />
-        <ChipGroupField
-          label="Modalidad preferida"
-          options={MODALITY_OPTIONS}
-          selected={[values.modality]}
+        <SelectField
+          name="materia"
+          label="Materia"
+          placeholder="Selecciona una materia"
+          required
+          options={MATERIA_OPTIONS}
+          value={values.materia}
+          error={getFieldError('materia')}
           disabled={isLoading}
-          onToggle={(modality) => setFieldValue('modality', modality)}
+          onChange={handleChange}
+          onBlur={handleBlur}
         />
       </div>
 
-      <AvailabilityGrid
-        label="¿Cuándo puedes recibir la tutoría?"
-        hint="Marca todos los bloques en los que tienes tiempo: más bloques = más tutores posibles."
-        required
-        value={values.availability}
-        error={getFieldError('availability')}
+      <ChipGroupField
+        label="Modalidad preferida"
+        options={MODALIDADES}
+        selected={[values.modalidad]}
         disabled={isLoading}
-        onChange={(availability) => setFieldValue('availability', availability)}
+        onToggle={(modalidad) => setFieldValue('modalidad', modalidad)}
       />
 
-      <TextareaField
-        name="notes"
-        label="Detalles adicionales"
-        placeholder="Temas puntuales, fecha de examen, cómo prefieres estudiar…"
-        hint="Opcional"
-        value={values.notes}
-        error={getFieldError('notes')}
+      <AvailabilityGrid
+        label="¿Cuándo puede recibir la tutoría?"
+        hint="Marca todos los horarios posibles: más horarios = más tutores disponibles."
+        required
+        value={values.horarios}
+        error={getFieldError('horarios')}
         disabled={isLoading}
-        onChange={handleChange}
-        onBlur={handleBlur}
+        onChange={(horarios) => setFieldValue('horarios', horarios)}
       />
 
       <div className="flex justify-end">
@@ -83,7 +85,7 @@ export function RequestForm({ subjects, onSubmit, isLoading = false, errorMessag
           isLoading={isLoading}
           leftIcon={<Icon name="sparkles" className="h-4 w-4" />}
         >
-          {isLoading ? 'Buscando tutor…' : 'Buscar mi tutor ideal'}
+          {isLoading ? 'Buscando tutor…' : 'Buscar tutor ideal'}
         </Button>
       </div>
     </form>

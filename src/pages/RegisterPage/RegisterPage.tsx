@@ -14,7 +14,7 @@ export function RegisterPage() {
   const { register } = useAuth();
 
   const submitRegister = useCallback(
-    ({ name, email, password, role }: RegisterFormValues) => register({ name, email, password, role }),
+    ({ name, email, password }: RegisterFormValues) => register({ name, email, password }),
     [register],
   );
   const { run, isLoading, error } = useAsyncAction(submitRegister);
@@ -22,7 +22,7 @@ export function RegisterPage() {
   return (
     <AuthLayout
       title="Crea tu cuenta"
-      subtitle="Como estudiante para pedir tutorías, o como tutor para darlas"
+      subtitle="Encuentra el tutor ideal para cada estudiante"
       aside={<AuthBrandPanel brandName={APP_NAME} />}
       footer={
         <>

@@ -6,7 +6,7 @@ import { Icon } from '@atoms/Icon';
 export interface AppHeaderProps {
   brandName: string;
   userName: string;
-  roleLabel: string;
+  roleLabel?: string;
   onLogout: () => void;
 }
 
@@ -24,7 +24,7 @@ export function AppHeader({ brandName, userName, roleLabel, onLogout }: AppHeade
           <div className="hidden min-w-0 sm:block">
             <p className="truncate text-sm font-medium text-slate-900">{userName}</p>
           </div>
-          <Badge tone="brand">{roleLabel}</Badge>
+          {roleLabel && <Badge tone="brand">{roleLabel}</Badge>}
           <Button variant="ghost" size="sm" leftIcon={<Icon name="logout" className="h-4 w-4" />} onClick={onLogout}>
             <span className="hidden sm:inline">Salir</span>
             <span className="sr-only sm:hidden">Cerrar sesión</span>

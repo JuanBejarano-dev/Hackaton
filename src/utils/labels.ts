@@ -1,36 +1,15 @@
-import type { Role } from '@/types/auth';
-import type { ExperienceLevel, ModalityPreference, RequestStatus, TutorModality } from '@/types/domain';
+import type { Modalidad, Nivel } from '@/types/domain';
+import { MODALIDADES, NIVELES } from './catalog';
 
-export const ROLE_LABELS: Record<Role, string> = {
-  student: 'Estudiante',
-  tutor: 'Tutor',
-  coordinator: 'Coordinador',
-};
+export const nivelLabel = (nivel: Nivel): string =>
+  NIVELES.find((item) => item.value === nivel)?.label ?? `Nivel ${nivel}`;
 
-export const EXPERIENCE_LABELS: Record<ExperienceLevel, string> = {
-  junior: 'Junior',
-  intermediate: 'Intermedio',
-  senior: 'Senior',
-};
-
-export const TUTOR_MODALITY_LABELS: Record<TutorModality, string> = {
-  virtual: 'Virtual',
-  in_person: 'Presencial',
-  both: 'Virtual y presencial',
-};
-
-export const MODALITY_PREFERENCE_LABELS: Record<ModalityPreference, string> = {
-  virtual: 'Virtual',
-  in_person: 'Presencial',
-  any: 'Me da igual',
-};
-
-export const REQUEST_STATUS_LABELS: Record<RequestStatus, string> = {
-  pending: 'Pendiente',
-  assigned: 'Asignada',
-  no_match: 'Sin tutor disponible',
-};
+export const modalidadLabel = (modalidad: Modalidad): string =>
+  MODALIDADES.find((item) => item.value === modalidad)?.label ?? modalidad;
 
 const dateFormatter = new Intl.DateTimeFormat('es', { dateStyle: 'medium', timeStyle: 'short' });
 
+/** Fecha ISO (UTC) mostrada en la hora local del navegador. */
 export const formatDate = (iso: string): string => dateFormatter.format(new Date(iso));
+
+export const formatScore = (score: number): string => String(Math.round(score * 10) / 10);

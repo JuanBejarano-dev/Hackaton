@@ -1,4 +1,4 @@
-import type { AuthSession } from '@/types/auth';
+import type { AuthSession, User } from '@/types/auth';
 
 const SESSION_KEY = 'tutormatch.session';
 
@@ -14,11 +14,18 @@ export function getStoredSession(): AuthSession | null {
   }
 }
 
-/** `persistent` = true guarda en localStorage ("Recordarme"); si no, solo dura la pestaña. */
+/** `persistent` = true guarda en localStorage ("Recordarme"); si no, en sessionStorage. */
 export function saveSession(session: AuthSession, persistent: boolean): void {
   clearSession();
   const storage = persistent ? localStorage : sessionStorage;
   storage.setItem(SESSION_KEY, JSON.stringify(session));
+}
+
+/** Actualiza el usuario guardado sin cambiar dónde está el token. */
+export function updateStoredUser(user: User): void {
+  const storage = localStorage.getItem(SESSION_KEY) ? localStorage : sessionStorage;
+  const session = getStoredSession();
+  if (session) storage.setItem(SESSION_KEY, JSON.stringify({ ...session, user }));
 }
 
 export function clearSession(): void {

@@ -2,13 +2,10 @@ import type { ReactNode } from 'react';
 import { Alert } from '@atoms/Alert';
 import { Button } from '@atoms/Button';
 import { CheckboxField } from '@molecules/CheckboxField';
-import { ChipGroupField } from '@molecules/ChipGroupField';
 import { FormField } from '@molecules/FormField';
 import { PasswordField } from '@molecules/PasswordField';
 import { useForm } from '@hooks/useForm';
-import type { SelfRegisterRole } from '@/types/auth';
 import { validateRegister, type RegisterFormValues } from '@utils/authValidation';
-import { ROLE_LABELS } from '@utils/labels';
 
 export interface RegisterFormProps {
   onSubmit: (values: RegisterFormValues) => void;
@@ -24,13 +21,7 @@ const INITIAL_VALUES: RegisterFormValues = {
   password: '',
   confirmPassword: '',
   acceptTerms: false,
-  role: 'student',
 };
-
-const ROLE_OPTIONS: Array<{ value: SelfRegisterRole; label: string }> = [
-  { value: 'student', label: ROLE_LABELS.student },
-  { value: 'tutor', label: ROLE_LABELS.tutor },
-];
 
 export function RegisterForm({
   onSubmit,
@@ -38,7 +29,7 @@ export function RegisterForm({
   errorMessage,
   termsLabel = 'Acepto los términos y condiciones',
 }: RegisterFormProps) {
-  const { values, handleChange, handleBlur, setFieldValue, handleSubmit, getFieldError } = useForm<RegisterFormValues>({
+  const { values, handleChange, handleBlur, handleSubmit, getFieldError } = useForm<RegisterFormValues>({
     initialValues: INITIAL_VALUES,
     validate: validateRegister,
     onSubmit,
@@ -47,15 +38,6 @@ export function RegisterForm({
   return (
     <form noValidate onSubmit={handleSubmit} className="space-y-5" aria-label="Crear cuenta">
       {errorMessage && <Alert variant="error">{errorMessage}</Alert>}
-
-      <ChipGroupField
-        label="Quiero registrarme como"
-        options={ROLE_OPTIONS}
-        selected={[values.role]}
-        disabled={isLoading}
-        hint={values.role === 'tutor' ? 'Después completarás tus materias y horarios.' : 'Podrás pedir tutorías y recibir recomendaciones.'}
-        onToggle={(role) => setFieldValue('role', role)}
-      />
 
       <FormField
         name="name"

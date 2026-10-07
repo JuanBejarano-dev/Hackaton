@@ -1,42 +1,29 @@
-import type { DayOfWeek, TimeBlock, TimeSlot } from '@/types/domain';
+import type { Dia, Hora, Horario } from '@/types/domain';
 
-export const DAYS: ReadonlyArray<{ id: DayOfWeek; label: string; short: string }> = [
-  { id: 'monday', label: 'Lunes', short: 'Lun' },
-  { id: 'tuesday', label: 'Martes', short: 'Mar' },
-  { id: 'wednesday', label: 'Miércoles', short: 'Mié' },
-  { id: 'thursday', label: 'Jueves', short: 'Jue' },
-  { id: 'friday', label: 'Viernes', short: 'Vie' },
-  { id: 'saturday', label: 'Sábado', short: 'Sáb' },
+export const DIAS: ReadonlyArray<{ id: Dia; label: string; short: string }> = [
+  { id: 'LUN', label: 'Lunes', short: 'Lun' },
+  { id: 'MAR', label: 'Martes', short: 'Mar' },
+  { id: 'MIE', label: 'Miércoles', short: 'Mié' },
+  { id: 'JUE', label: 'Jueves', short: 'Jue' },
+  { id: 'VIE', label: 'Viernes', short: 'Vie' },
 ];
 
-export const TIME_SLOTS: ReadonlyArray<{ id: TimeSlot; label: string }> = [
-  { id: '07-09', label: '7:00 – 9:00' },
-  { id: '09-11', label: '9:00 – 11:00' },
-  { id: '11-13', label: '11:00 – 13:00' },
-  { id: '14-16', label: '14:00 – 16:00' },
-  { id: '16-18', label: '16:00 – 18:00' },
-  { id: '18-20', label: '18:00 – 20:00' },
+export const HORAS: ReadonlyArray<{ id: Hora; label: string }> = [
+  { id: '08', label: '8:00' },
+  { id: '10', label: '10:00' },
+  { id: '14', label: '14:00' },
+  { id: '16', label: '16:00' },
 ];
 
-export const isSameBlock = (a: TimeBlock, b: TimeBlock): boolean => a.day === b.day && a.slot === b.slot;
+export const toHorario = (dia: Dia, hora: Hora): Horario => `${dia}-${hora}`;
 
-export const hasBlock = (blocks: TimeBlock[], block: TimeBlock): boolean =>
-  blocks.some((candidate) => isSameBlock(candidate, block));
+export const toggleHorario = (horarios: Horario[], horario: Horario): Horario[] =>
+  horarios.includes(horario) ? horarios.filter((item) => item !== horario) : [...horarios, horario];
 
-export const toggleBlock = (blocks: TimeBlock[], block: TimeBlock): TimeBlock[] =>
-  hasBlock(blocks, block) ? blocks.filter((candidate) => !isSameBlock(candidate, block)) : [...blocks, block];
-
-export const intersectBlocks = (a: TimeBlock[], b: TimeBlock[]): TimeBlock[] =>
-  a.filter((block) => hasBlock(b, block));
-
-const dayOrder = (day: DayOfWeek) => DAYS.findIndex((candidate) => candidate.id === day);
-const slotOrder = (slot: TimeSlot) => TIME_SLOTS.findIndex((candidate) => candidate.id === slot);
-
-export const sortBlocks = (blocks: TimeBlock[]): TimeBlock[] =>
-  [...blocks].sort((a, b) => dayOrder(a.day) - dayOrder(b.day) || slotOrder(a.slot) - slotOrder(b.slot));
-
-export function formatBlock({ day, slot }: TimeBlock): string {
-  const dayLabel = DAYS.find((candidate) => candidate.id === day)?.short ?? day;
-  const slotLabel = TIME_SLOTS.find((candidate) => candidate.id === slot)?.label ?? slot;
-  return `${dayLabel} ${slotLabel}`;
+/** "MIE-10" → "Mié 10:00". Si el formato no se reconoce, devuelve el texto original. */
+export function formatHorario(horario: string): string {
+  const [dia, hora] = horario.split('-');
+  const diaLabel = DIAS.find((item) => item.id === dia)?.short;
+  const horaLabel = HORAS.find((item) => item.id === hora)?.label ?? (hora ? `${hora}:00` : undefined);
+  return diaLabel && horaLabel ? `${diaLabel} ${horaLabel}` : horario;
 }

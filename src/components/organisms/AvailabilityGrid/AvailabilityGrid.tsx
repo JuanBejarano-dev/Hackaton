@@ -3,17 +3,18 @@ import { ErrorMessage } from '@atoms/ErrorMessage';
 import { Icon } from '@atoms/Icon';
 import { Label } from '@atoms/Label';
 import { ToggleChip } from '@atoms/ToggleChip';
-import type { TimeBlock } from '@/types/domain';
+import type { Horario } from '@/types/domain';
 import { cn } from '@utils/cn';
-import { DAYS, hasBlock, TIME_SLOTS, toggleBlock } from '@utils/schedule';
+import { DIAS, HORAS, toHorario, toggleHorario } from '@utils/schedule';
 
 export interface AvailabilityGridProps {
   label?: string;
-  value: TimeBlock[];
+  /** Horarios en formato "DIA-HORA" (p. ej. "MIE-10"). */
+  value: string[];
   /** Si se omite, la cuadrícula es de solo lectura. */
-  onChange?: (next: TimeBlock[]) => void;
+  onChange?: (next: Horario[]) => void;
   /** Bloques a resaltar (p. ej. los que coinciden con el tutor). Solo en modo lectura. */
-  highlight?: TimeBlock[];
+  highlight?: string[];
   error?: string;
   hint?: string;
   required?: boolean;
@@ -43,13 +44,13 @@ export function AvailabilityGrid({
       </Label>
 
       <div className="relative overflow-x-auto rounded-xl ring-1 ring-slate-200">
-        <table className="w-full min-w-[540px] border-collapse bg-white text-sm">
+        <table className="w-full min-w-[420px] border-collapse bg-white text-sm">
           <thead>
             <tr className="bg-slate-50">
               <th scope="col" className="w-28 px-2 py-2 text-left text-xs font-medium text-slate-500">
                 Hora
               </th>
-              {DAYS.map((day) => (
+              {DIAS.map((day) => (
                 <th key={day.id} scope="col" className="px-1 py-2 text-xs font-semibold text-slate-700">
                   <abbr title={day.label} className="no-underline">
                     {day.short}
@@ -59,15 +60,15 @@ export function AvailabilityGrid({
             </tr>
           </thead>
           <tbody>
-            {TIME_SLOTS.map((slot) => (
+            {HORAS.map((slot) => (
               <tr key={slot.id} className="border-t border-slate-100">
                 <th scope="row" className="whitespace-nowrap px-2 py-1 text-left text-xs font-medium text-slate-500">
                   {slot.label}
                 </th>
-                {DAYS.map((day) => {
-                  const block: TimeBlock = { day: day.id, slot: slot.id };
-                  const isSelected = hasBlock(value, block);
-                  const isHighlighted = hasBlock(highlight, block);
+                {DIAS.map((day) => {
+                  const block = toHorario(day.id, slot.id);
+                  const isSelected = value.includes(block);
+                  const isHighlighted = highlight.includes(block);
                   const cellLabel = `${day.label} ${slot.label}`;
 
                   return (
@@ -78,7 +79,7 @@ export function AvailabilityGrid({
                           selected={isSelected}
                           disabled={disabled}
                           aria-label={cellLabel}
-                          onClick={() => onChange?.(toggleBlock(value, block))}
+                          onClick={() => onChange?.(toggleHorario(value as Horario[], block))}
                         >
                           {isSelected && <Icon name="check" className="h-4 w-4" />}
                         </ToggleChip>
@@ -111,7 +112,7 @@ export function AvailabilityGrid({
 
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
         <span>
-          {value.length} {value.length === 1 ? 'bloque seleccionado' : 'bloques seleccionados'}
+          {value.length} {value.length === 1 ? 'horario seleccionado' : 'horarios seleccionados'}
         </span>
         {!isEditable && highlight.length > 0 && (
           <span className="flex items-center gap-3">

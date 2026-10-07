@@ -1,91 +1,79 @@
-export type DayOfWeek = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday';
+export type Dia = 'LUN' | 'MAR' | 'MIE' | 'JUE' | 'VIE';
 
-export type TimeSlot = '07-09' | '09-11' | '11-13' | '14-16' | '16-18' | '18-20';
+export type Hora = '08' | '10' | '14' | '16';
 
-/** Un bloque de disponibilidad: un día + una franja de 2 horas. */
-export interface TimeBlock {
-  day: DayOfWeek;
-  slot: TimeSlot;
+/** Bloque de horario en formato "DIA-HORA", p. ej. "MIE-10". */
+export type Horario = `${Dia}-${Hora}`;
+
+export type Modalidad = 'PRESENCIAL' | 'VIRTUAL' | 'AMBAS';
+
+/** 1 = Básico, 2 = Intermedio, 3 = Experto. */
+export type Nivel = 1 | 2 | 3;
+
+/** Tutor tal como lo envía y recibe la API: materias y horarios son strings separados por comas. */
+export interface Tutor {
+  id: number;
+  nombre: string;
+  materias: string;
+  horarios: string;
+  nivel: Nivel;
+  calificacion: number;
+  modalidad: Modalidad;
 }
 
-export interface Subject {
-  id: string;
-  name: string;
+export type TutorPayload = Omit<Tutor, 'id'>;
+
+/** Tutor con materias y horarios convertidos a listas para la UI. */
+export interface TutorView extends Omit<Tutor, 'materias' | 'horarios'> {
+  materias: string[];
+  horarios: string[];
 }
 
-/** Nivel de experiencia/prioridad del tutor: a más experiencia, más peso en el score. */
-export type ExperienceLevel = 'junior' | 'intermediate' | 'senior';
+export type TutorInput = Omit<TutorView, 'id'>;
 
-export type TutorModality = 'virtual' | 'in_person' | 'both';
-
-export type ModalityPreference = 'virtual' | 'in_person' | 'any';
-
-export interface PersonSummary {
-  id: string;
-  name: string;
-  email: string;
-}
-
-export interface TutorProfile {
-  /** Id del perfil de tutor (no del usuario). */
-  id: string;
-  user: PersonSummary;
-  subjects: Subject[];
-  availability: TimeBlock[];
-  experienceLevel: ExperienceLevel;
-  modality: TutorModality;
-  bio: string;
-}
-
-export interface TutorProfileInput {
-  subjectIds: string[];
-  availability: TimeBlock[];
-  modality: TutorModality;
-  bio: string;
-}
-
-/** Un criterio del score calculado por el backend. */
-export interface ScoreCriterion {
-  key: string;
-  label: string;
-  /** Puntaje del criterio, de 0 a 100. */
-  score: number;
-  /** Peso del criterio en el score total, de 0 a 1. */
-  weight: number;
+export interface DetalleCriterio {
+  nombreCriterio: string;
+  /** Peso del criterio, de 0 a 1. */
+  peso: number;
+  /** Puntaje del criterio, de 0 a 1. */
+  puntaje: number;
+  /** Puntos que aporta al score total (máximo: peso × 100). */
+  aporte: number;
+  explicacion: string;
 }
 
 export interface MatchResult {
-  tutor: PersonSummary & {
-    experienceLevel: ExperienceLevel;
-    modality: TutorModality;
-  };
+  tutorId: number;
+  nombreTutor: string;
   /** Score total de afinidad, de 0 a 100. */
   score: number;
-  criteria: ScoreCriterion[];
-  justification: string;
-  matchingBlocks: TimeBlock[];
+  justificacion: string;
+  horariosCoincidentes: string[];
+  recomendado: boolean;
+  /** true si comparte al menos un horario con el estudiante. */
+  disponible: boolean;
+  desglose: DetalleCriterio[];
 }
 
-export type RequestStatus = 'pending' | 'assigned' | 'no_match';
-
-export interface TutoringRequest {
-  id: string;
-  student: PersonSummary;
-  subject: Subject;
-  availability: TimeBlock[];
-  modality: ModalityPreference;
-  notes: string;
-  status: RequestStatus;
-  createdAt: string;
-  /** Id del perfil del tutor asignado (coincide con `matches[n].tutor.id`). */
-  assignedTutorId: string | null;
-  /** Ranking de tutores evaluados, ordenado de mayor a menor score. */
-  matches: MatchResult[];
+export interface SolicitudMatch {
+  nombreEstudiante: string;
+  materia: string;
+  horarios: Horario[];
+  modalidad: Modalidad;
 }
 
-export interface TutoringRequestInput {
-  subjectId: string;
-  availability: TimeBlock[];
-  modality: ModalityPreference;
-  notes: string;
+export interface SolicitudRegistrada {
+  id: number;
+  nombreEstudiante: string;
+  materia: string;
+  horarios: string[];
+  modalidad: Modalidad;
+  /** ISO UTC, p. ej. "2026-10-07T15:56:59Z". */
+  fecha: string;
+  asignada: boolean;
+  tutorAsignadoId: number | null;
+  nombreTutorAsignado: string | null;
+  score: number | null;
+  justificacion: string;
+  candidatosEvaluados: number;
 }

@@ -5,8 +5,8 @@ export interface AuthBrandPanelProps {
 }
 
 const HIGHLIGHTS = [
-  'Registra tu perfil de tutor o tu solicitud en minutos',
-  'Matching automático por materia, horario y experiencia',
+  'Registra tutores con sus materias, horarios y nivel',
+  'Matching automático por horario, nivel, calificación y modalidad',
   'Cada recomendación explica por qué es la mejor opción',
 ];
 

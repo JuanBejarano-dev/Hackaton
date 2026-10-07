@@ -18,7 +18,24 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
+  // Se usa la sesión guardada de inmediato (sin pantalla en blanco mientras despierta el servidor)
+  // y se valida contra GET /auth/me en segundo plano.
   const [user, setUser] = useState<User | null>(() => authService.getStoredSession()?.user ?? null);
+
+  useEffect(() => {
+    if (!authService.getStoredSession()) return;
+    let isCurrent = true;
+    authService
+      .fetchCurrentUser()
+      .then((currentUser) => {
+        if (isCurrent) setUser(currentUser);
+      })
+      // Un 401 ya cerró la sesión vía SESSION_EXPIRED_EVENT; otros errores (red) conservan la sesión.
+      .catch(() => undefined);
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
 
   // Si el backend rechaza el token, se cierra la sesión en toda la app.
   useEffect(() => {

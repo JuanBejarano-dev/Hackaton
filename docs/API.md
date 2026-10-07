@@ -1,42 +1,20 @@
-# Contrato de API — TutorMatch
+# API de TutorMatch
 
-Configura la URL en `.env.local`: `VITE_API_URL=http://localhost:3000/api`.
-Sin esa variable, el frontend usa datos simulados.
+- Swagger: https://hackaton-backend-1w19.onrender.com/swagger-ui.html
+- Producción: `https://hackaton-backend-1w19.onrender.com/api` (`.env.production`)
+- Desarrollo: `http://localhost:8080/api` (`.env.development`)
 
-- Todas las rutas (menos login/registro) reciben `Authorization: Bearer <token>`.
-- Errores: `{ "message": "texto para el usuario" }` con el código HTTP correspondiente (401 cierra la sesión).
-- Bloques de horario: `{ "day": "monday".."saturday", "slot": "07-09" | "09-11" | "11-13" | "14-16" | "16-18" | "18-20" }`.
+`npm run dev` usa el backend local; `npm run dev:prod-api` usa el de Render.
+En Vercel, `VITE_API_URL` debe estar en Settings → Environment Variables (y redesplegar).
 
-| Método | Ruta | Body | Respuesta |
-|---|---|---|---|
-| POST | `/auth/login` | `{ email, password, rememberMe }` | `{ user, token }` |
-| POST | `/auth/register` | `{ name, email, password, role: "student" \| "tutor" }` | `{ user, token }` |
-| GET | `/subjects` | — | `Subject[]` |
-| GET | `/tutors/me` | — | `TutorProfile` |
-| PUT | `/tutors/me` | `{ subjectIds, availability, modality, bio }` | `TutorProfile` |
-| GET | `/tutors` | — (coordinador) | `TutorProfile[]` |
-| PATCH | `/tutors/:id` | `{ experienceLevel }` (coordinador) | `TutorProfile` |
-| GET | `/requests` | — (filtra por rol del token) | `TutoringRequest[]` |
-| GET | `/requests/:id` | — | `TutoringRequest` |
-| POST | `/requests` | `{ subjectId, availability, modality, notes }` | `TutoringRequest` con score calculado |
-| PATCH | `/requests/:id/assignment` | `{ tutorId }` (coordinador) | `TutoringRequest` |
+| Método | Ruta | Dónde se usa |
+|---|---|---|
+| POST | `/auth/register`, `/auth/login`, `/auth/logout` | `src/services/authService.ts` |
+| GET | `/auth/me` | Restaura la sesión al abrir la app (`src/context/AuthContext.tsx`) |
+| GET / POST | `/tutores` | Pantallas Tutores y Registrar tutor (`src/services/tutorService.ts`) |
+| GET | `/tutores/{id}` | `getTutor` en `src/services/tutorService.ts` |
+| POST | `/match` | Pantalla Buscar tutor (`src/services/matchService.ts`) |
+| GET | `/solicitudes`, `/solicitudes/{id}` | Historial de asignaciones (`src/services/solicitudService.ts`) |
 
-## Tipos
-
-```ts
-User            { id, name, email, role: "student" | "tutor" | "coordinator" }
-Subject         { id, name }
-TutorProfile    { id, user: { id, name, email }, subjects: Subject[], availability: TimeBlock[],
-                  experienceLevel: "junior" | "intermediate" | "senior",
-                  modality: "virtual" | "in_person" | "both", bio }
-TutoringRequest { id, student: { id, name, email }, subject: Subject, availability: TimeBlock[],
-                  modality: "virtual" | "in_person" | "any", notes,
-                  status: "pending" | "assigned" | "no_match", createdAt (ISO),
-                  assignedTutorId: string | null,          // id de TutorProfile
-                  matches: MatchResult[] }                 // ordenado de mayor a menor score
-MatchResult     { tutor: { id, name, email, experienceLevel, modality },  // id = TutorProfile.id
-                  score: 0-100, justification: string, matchingBlocks: TimeBlock[],
-                  criteria: { key, label, score: 0-100, weight: 0-1 }[] }
-```
-
-Los tipos completos están en `src/types/`. Las llamadas, en `src/services/` (`httpXxxApi` en cada archivo).
+Los tipos de cada respuesta están en `src/types/domain.ts` y `src/types/auth.ts`.
+En tutores, `materias` y `horarios` viajan como texto separado por comas; la conversión está en `src/utils/tutores.ts`.
