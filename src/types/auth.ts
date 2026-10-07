@@ -21,4 +21,4 @@ export interface AuthSession {
   token: string;
 }
 
-export type AuthStatus = 'authenticated' | 'unauthenticated';
+export type AuthStatus = 'authenticated' | 'unauthenticated' | 'loading';

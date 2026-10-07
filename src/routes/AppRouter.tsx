@@ -13,6 +13,7 @@ function ProtectedRoute() {
   const { status } = useAuth();
   const location = useLocation();
 
+  if (status === 'loading') return <div className="p-8 text-center">Cargando sesión…</div>;
   if (status !== 'authenticated') {
     return <Navigate to="/login" replace state={{ from: location.pathname } satisfies RedirectState} />;
   }
@@ -25,6 +26,7 @@ function GuestRoute() {
   const location = useLocation();
   const from = (location.state as RedirectState | null)?.from ?? '/dashboard';
 
+  if (status === 'loading') return <div className="p-8 text-center">Cargando sesión…</div>;
   if (status === 'authenticated') {
     return <Navigate to={from} replace />;
   }

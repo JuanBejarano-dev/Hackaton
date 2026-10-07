@@ -15,7 +15,7 @@ export function RegisterPage() {
     ({ name, email, password }: RegisterFormValues) => register({ name, email, password }),
     [register],
   );
-  const { run, isLoading, error } = useAsyncAction(submitRegister);
+  const { run, isLoading, error, slow } = useAsyncAction(submitRegister);
 
   return (
     <AuthLayout
@@ -31,6 +31,7 @@ export function RegisterPage() {
         </>
       }
     >
+      {slow && <div role="status" className="mb-4 text-sm text-slate-600">Despertando el servidor, puede tardar unos segundos…</div>}
       <RegisterForm
         onSubmit={run}
         isLoading={isLoading}

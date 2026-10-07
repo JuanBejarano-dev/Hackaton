@@ -14,7 +14,7 @@ export function LoginPage() {
 
   // La redirección tras el éxito la resuelve GuestRoute al cambiar el estado de auth.
   const submitLogin = useCallback((values: LoginFormValues) => login(values), [login]);
-  const { run, isLoading, error } = useAsyncAction(submitLogin);
+  const { run, isLoading, error, slow } = useAsyncAction(submitLogin);
 
   return (
     <AuthLayout
@@ -30,9 +30,7 @@ export function LoginPage() {
         </>
       }
     >
-      <Alert variant="info" className="mb-5">
-        Demo: <strong>demo@hackaton.dev</strong> / <strong>Demo1234</strong>
-      </Alert>
+      {slow && <Alert variant="info" className="mb-5">Despertando el servidor, puede tardar unos segundos…</Alert>}
       <LoginForm
         onSubmit={run}
         isLoading={isLoading}
