@@ -1,5 +1,6 @@
-import { createContext, useCallback, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import * as authService from '@services/authService';
+import { SESSION_EXPIRED_EVENT } from '@services/session';
 import type { AuthStatus, LoginCredentials, RegisterData, User } from '@/types/auth';
 
 export interface AuthContextValue {
@@ -18,6 +19,13 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(() => authService.getStoredSession()?.user ?? null);
+
+  // Si el backend rechaza el token, se cierra la sesión en toda la app.
+  useEffect(() => {
+    const handleExpired = () => setUser(null);
+    window.addEventListener(SESSION_EXPIRED_EVENT, handleExpired);
+    return () => window.removeEventListener(SESSION_EXPIRED_EVENT, handleExpired);
+  }, []);
 
   const login = useCallback(async (credentials: LoginCredentials) => {
     const session = await authService.login(credentials);

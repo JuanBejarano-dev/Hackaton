@@ -1,49 +1,51 @@
-import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
-import { DashboardPage } from '@pages/DashboardPage';
+import { Navigate, Route, Routes } from 'react-router-dom';
+import { CoordinatorDashboardPage } from '@pages/CoordinatorDashboardPage';
+import { CoordinatorRequestsPage } from '@pages/CoordinatorRequestsPage';
+import { CoordinatorTutorsPage } from '@pages/CoordinatorTutorsPage';
 import { LoginPage } from '@pages/LoginPage';
+import { NewRequestPage } from '@pages/NewRequestPage';
 import { RegisterPage } from '@pages/RegisterPage';
-import { useAuth } from '@hooks/useAuth';
-
-interface RedirectState {
-  from?: string;
-}
-
-/** Solo usuarios autenticados; si no, envía a /login recordando la ruta de origen. */
-function ProtectedRoute() {
-  const { status } = useAuth();
-  const location = useLocation();
-
-  if (status !== 'authenticated') {
-    return <Navigate to="/login" replace state={{ from: location.pathname } satisfies RedirectState} />;
-  }
-  return <Outlet />;
-}
-
-/** Solo invitados; un usuario autenticado vuelve a la ruta de origen o al dashboard. */
-function GuestRoute() {
-  const { status } = useAuth();
-  const location = useLocation();
-  const from = (location.state as RedirectState | null)?.from ?? '/dashboard';
-
-  if (status === 'authenticated') {
-    return <Navigate to={from} replace />;
-  }
-  return <Outlet />;
-}
+import { RequestDetailPage } from '@pages/RequestDetailPage';
+import { StudentHomePage } from '@pages/StudentHomePage';
+import { TutorHomePage } from '@pages/TutorHomePage';
+import { TutorProfilePage } from '@pages/TutorProfilePage';
+import { AppShell } from './AppShell';
+import { GuestRoute, HomeRedirect, ProtectedRoute } from './guards';
+import { PATHS } from './paths';
 
 export function AppRouter() {
   return (
     <Routes>
       <Route element={<GuestRoute />}>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+        <Route path={PATHS.login} element={<LoginPage />} />
+        <Route path={PATHS.register} element={<RegisterPage />} />
       </Route>
 
       <Route element={<ProtectedRoute />}>
-        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route element={<AppShell />}>
+          <Route element={<ProtectedRoute allowedRoles={['student']} />}>
+            <Route path={PATHS.student.home} element={<StudentHomePage />} />
+            <Route path={PATHS.student.newRequest} element={<NewRequestPage />} />
+          </Route>
+
+          <Route element={<ProtectedRoute allowedRoles={['tutor']} />}>
+            <Route path={PATHS.tutor.home} element={<TutorHomePage />} />
+            <Route path={PATHS.tutor.profile} element={<TutorProfilePage />} />
+          </Route>
+
+          <Route element={<ProtectedRoute allowedRoles={['coordinator']} />}>
+            <Route path={PATHS.coordinator.home} element={<CoordinatorDashboardPage />} />
+            <Route path={PATHS.coordinator.requests} element={<CoordinatorRequestsPage />} />
+            <Route path={PATHS.coordinator.tutors} element={<CoordinatorTutorsPage />} />
+          </Route>
+
+          {/* Compartida: cada rol ve una versión distinta del detalle. */}
+          <Route path="/solicitudes/:requestId" element={<RequestDetailPage />} />
+        </Route>
       </Route>
 
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/" element={<HomeRedirect />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

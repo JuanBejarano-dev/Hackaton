@@ -1,3 +1,4 @@
+import type { SelfRegisterRole } from '@/types/auth';
 import { isBlank, isStrongPassword, isValidEmail } from './validators';
 
 export type FormErrors<T> = Partial<Record<keyof T, string>>;
@@ -14,6 +15,7 @@ export type RegisterFormValues = {
   password: string;
   confirmPassword: string;
   acceptTerms: boolean;
+  role: SelfRegisterRole;
 };
 
 export function validateLogin(values: LoginFormValues): FormErrors<LoginFormValues> {

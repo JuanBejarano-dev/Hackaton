@@ -6,13 +6,15 @@ import { RegisterForm } from '@organisms/RegisterForm';
 import { AuthLayout } from '@templates/AuthLayout';
 import { useAsyncAction } from '@hooks/useAsyncAction';
 import { useAuth } from '@hooks/useAuth';
+import { APP_NAME } from '@/config';
+import { PATHS } from '@/routes/paths';
 import type { RegisterFormValues } from '@utils/authValidation';
 
 export function RegisterPage() {
   const { register } = useAuth();
 
   const submitRegister = useCallback(
-    ({ name, email, password }: RegisterFormValues) => register({ name, email, password }),
+    ({ name, email, password, role }: RegisterFormValues) => register({ name, email, password, role }),
     [register],
   );
   const { run, isLoading, error } = useAsyncAction(submitRegister);
@@ -20,12 +22,12 @@ export function RegisterPage() {
   return (
     <AuthLayout
       title="Crea tu cuenta"
-      subtitle="Únete al hackathon en menos de un minuto"
-      aside={<AuthBrandPanel />}
+      subtitle="Como estudiante para pedir tutorías, o como tutor para darlas"
+      aside={<AuthBrandPanel brandName={APP_NAME} />}
       footer={
         <>
           ¿Ya tienes cuenta?{' '}
-          <TextLink as={Link} to="/login">
+          <TextLink as={Link} to={PATHS.login}>
             Inicia sesión
           </TextLink>
         </>

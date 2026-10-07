@@ -1,7 +1,8 @@
 import { useCallback, useMemo, useState, type ChangeEvent, type FocusEvent, type FormEvent } from 'react';
 
-type FormValues = Record<string, string | boolean>;
+type FormValues = Record<string, unknown>;
 type FormErrors<T> = Partial<Record<keyof T, string>>;
+type FieldElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 
 interface UseFormOptions<T extends FormValues> {
   initialValues: T;
@@ -19,13 +20,20 @@ export function useForm<T extends FormValues>({ initialValues, validate, onSubmi
 
   const errors = useMemo(() => validate(values), [validate, values]);
 
-  const handleChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
-    const { name, type, value, checked } = event.target;
-    setValues((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+  const handleChange = useCallback((event: ChangeEvent<FieldElement>) => {
+    const { target } = event;
+    const value = target instanceof HTMLInputElement && target.type === 'checkbox' ? target.checked : target.value;
+    setValues((prev) => ({ ...prev, [target.name]: value }));
   }, []);
 
-  const handleBlur = useCallback((event: FocusEvent<HTMLInputElement>) => {
+  const handleBlur = useCallback((event: FocusEvent<FieldElement>) => {
     const { name } = event.target;
+    setTouched((prev) => ({ ...prev, [name]: true }));
+  }, []);
+
+  /** Para campos que no son inputs nativos (chips, cuadrícula de horarios…). */
+  const setFieldValue = useCallback(<K extends keyof T>(name: K, value: T[K]) => {
+    setValues((prev) => ({ ...prev, [name]: value }));
     setTouched((prev) => ({ ...prev, [name]: true }));
   }, []);
 
@@ -47,5 +55,5 @@ export function useForm<T extends FormValues>({ initialValues, validate, onSubmi
     [errors, touched],
   );
 
-  return { values, handleChange, handleBlur, handleSubmit, getFieldError };
+  return { values, handleChange, handleBlur, setFieldValue, handleSubmit, getFieldError };
 }
